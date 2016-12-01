@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace AdventOfCode
@@ -25,7 +26,7 @@ namespace AdventOfCode
                 var strDir = match.Groups[1].Value;
                 var nrOfTimes = int.Parse(match.Groups[2].Value);
 
-                if(strDir == "R") me.TurnRight(nrOfTimes);
+                if (strDir == "R") me.TurnRight(nrOfTimes);
                 else me.TurnLeft(nrOfTimes);
             }
             Console.WriteLine(me);
@@ -41,13 +42,15 @@ namespace AdventOfCode
     internal class Me
     {
         public Direction CurrentDirection { get; private set; }
-        public int StartX;
-        public int StartY;
+        public Cord Cord;
+        public Cord FirstIntersectCord { get; private set; }
 
+        private readonly List<Cord> _placesWeHaveBeenTo;
 
         public Me()
         {
             CurrentDirection = Direction.North;
+            _placesWeHaveBeenTo = new List<Cord>();
         }
 
         public void TurnLeft(int nrOfTimes)
@@ -62,24 +65,42 @@ namespace AdventOfCode
             Move(CurrentDirection, nrOfTimes);
         }
 
+        public override string ToString()
+        {
+            return $"Distance {GetBlocksAway(Cord.X,Cord.Y)}, First intersect {FirstIntersectCord}";
+        }
+
+        public static int GetBlocksAway(int x,int y)
+        {
+            return Math.Abs(x) + Math.Abs(y);
+        }
+
         private void Move(Direction direction, int nrOfTimes)
         {
-            switch (direction)
+            for (var i = 0; i < nrOfTimes; i++)
             {
-                case Direction.North:
-                    StartX += nrOfTimes;
-                    break;
-                case Direction.East:
-                    StartY += nrOfTimes;
-                    break;
-                case Direction.South:
-                    StartX -= nrOfTimes;
-                    break;
-                case Direction.West:
-                    StartY -= nrOfTimes;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+                switch (direction)
+                {
+                    case Direction.North:
+                        Cord.X++;
+                        break;
+                    case Direction.East:
+                        Cord.Y++;
+                        break;
+                    case Direction.South:
+                        Cord.X--;
+                        break;
+                    case Direction.West:
+                        Cord.Y--;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+                }
+                if (_placesWeHaveBeenTo.Where(c => c.X == Cord.X && c.Y == Cord.Y).ToList().Count > 0
+                    && FirstIntersectCord.X == 0 && FirstIntersectCord.Y == 0)
+                    FirstIntersectCord = Cord;
+
+                _placesWeHaveBeenTo.Add(Cord);
             }
         }
 
@@ -105,18 +126,18 @@ namespace AdventOfCode
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+
+    public struct Cord
+    {
+        public int X, Y;
 
         public override string ToString()
         {
-            return GetBlocksAway().ToString();
-        }
-
-        public int GetBlocksAway()
-        {
-            return Math.Abs(StartX) + Math.Abs(StartY);
+            return Me.GetBlocksAway(X,Y).ToString();
         }
     }
-
 
     public enum Direction
     {
