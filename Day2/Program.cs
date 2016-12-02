@@ -19,8 +19,8 @@ namespace Day2
             var advancedLayout = KeyPadLayout.GetAdvancedLayout();
             var simpleLayout = KeyPadLayout.GetSimpleLayout();
 
-//            SolveKeypad(codeLines, simpleLayout);
-//            Console.WriteLine($"Simple layout: The code is {string.Join("", Code)}");
+            SolveKeypad(codeLines, simpleLayout);
+            Console.WriteLine($"Simple layout: The code is {string.Join("", Code)}");
 
             Code = new List<string>();
             SolveKeypad(codeLines, advancedLayout);
@@ -61,7 +61,15 @@ namespace Day2
 
         public string GetCharFromCurrentCord()
         {
-            return _layOut[CurrentCord.Y][CurrentCord.X];
+            try
+            {
+                return _layOut[CurrentCord.Y][CurrentCord.X];
+            }
+            catch (Exception)
+            {
+
+                return "X";
+            }
         }
 
         private Cord GetStartCord()
@@ -106,49 +114,30 @@ namespace Day2
 
         private void MoveUp()
         {
-            double count = _layOut.Count;
-            var layoutHeight = _layOut[CurrentCord.Y-1].Count;
-            var xCordIsOnFirstOrLastIndex = CurrentCord.X == 0 || CurrentCord.X == layoutHeight - 1;
-            var isOnTopHalf = CurrentCord.Y <= Math.Round(count / 2, 0, MidpointRounding.AwayFromZero);
-
-            if (xCordIsOnFirstOrLastIndex && isOnTopHalf)
-            {
-                return;
-            }
-            CurrentCord.Y++;
+            CurrentCord.Y--;
+            if (GetCharFromCurrentCord() == "X")
+                CurrentCord.Y++;
         }
 
         private void MoveDown()
         {
-            double count = _layOut.Count;
-            var layoutHeight = _layOut[CurrentCord.Y-1].Count;
-            var xCordIsOnFirstOrLastIndex = CurrentCord.X == 0 || CurrentCord.X == layoutHeight - 1;
-            var isOnBottomHalf = CurrentCord.Y >= Math.Round(count / 2, 0, MidpointRounding.AwayFromZero);
-
-            if (xCordIsOnFirstOrLastIndex && isOnBottomHalf)
-            {
-                return;
-            }
-            CurrentCord.Y--;
+            CurrentCord.Y++;
+            if (GetCharFromCurrentCord() == "X")
+                CurrentCord.Y--;
         }
 
         private void MoveLeft()
         {
-            if (CurrentCord.X == 0)
-            {
-                return;
-            }
             CurrentCord.X--;
+            if (GetCharFromCurrentCord() == "X")
+                CurrentCord.X++;
         }
 
         private void MoveRight()
         {
-            var rowCount = _layOut[CurrentCord.Y-1].Count - 1;
-            if (CurrentCord.X == rowCount)
-            {
-                return;
-            }
             CurrentCord.X++;
+            if (GetCharFromCurrentCord() == "X")
+                CurrentCord.X--;
         }
     }
 
@@ -162,11 +151,11 @@ namespace Day2
     public class KeyPadLayout
     {
         private const string AdvancedLayout = @"
-                                1
-                              2 3 4
+                            X X 1 X X
+                            X 2 3 4 X
                             5 6 7 8 9
-                              A B C
-                                D
+                            X A B C X
+                            X X D X X
 ";
         private const string SimpleLayout = @"
                                 1 2 3
