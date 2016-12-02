@@ -7,16 +7,29 @@ namespace Day2
 {
     internal class Program
     {
-        public List<int> Code;
+        public List<string> Code;
         private string _inputFile;
 
         private void Start()
         {
-            Code = new List<int>();
+            Code = new List<string>();
             _inputFile = File.ReadAllText("../../input_part1");
             var codeLines = _inputFile.Split('\n');
 
-            var keyPad = new KeyPad();
+            var advancedLayout = KeyPadLayout.GetAdvancedLayout();
+            var simpleLayout = KeyPadLayout.GetSimpleLayout();
+
+//            SolveKeypad(codeLines, simpleLayout);
+//            Console.WriteLine($"Simple layout: The code is {string.Join("", Code)}");
+
+            Code = new List<string>();
+            SolveKeypad(codeLines, advancedLayout);
+            Console.WriteLine($"Advanced layout: The code is {string.Join("", Code)}");
+        }
+
+        public void SolveKeypad(string[] codeLines, List<List<string>> layOut)
+        {
+            var keyPad = new KeyPad(layOut);
 
             foreach (var line in codeLines)
             {
@@ -24,10 +37,9 @@ namespace Day2
                 {
                     keyPad.Move(c);
                 }
-                Code.Add(keyPad.CurrentKey);
-                Console.WriteLine($"Added {keyPad.CurrentKey}");
+                Code.Add(keyPad.GetCharFromCurrentCord());
+                Console.WriteLine($"Added {keyPad.GetCharFromCurrentCord()}");
             }
-            Console.WriteLine($"The code is {string.Join("",Code)}");
         }
 
         public static void Main(string[] args)
@@ -38,11 +50,37 @@ namespace Day2
 
     public class KeyPad
     {
-        public int CurrentKey { get; private set; }
+        private readonly List<List<string>> _layOut;
+        public Cord CurrentCord { get; }
 
-        public KeyPad()
+        public KeyPad(List<List<string>> layOut)
         {
-            CurrentKey = 5;
+            _layOut = layOut;
+            CurrentCord = GetStartCord();
+        }
+
+        public string GetCharFromCurrentCord()
+        {
+            return _layOut[CurrentCord.Y][CurrentCord.X];
+        }
+
+        private Cord GetStartCord()
+        {
+            for (var i = 0; i < _layOut.Count; i++)
+            {
+                var a = _layOut[i];
+                for (var j = 0; j < a.Count; j++)
+                {
+                    var item = _layOut[i][j];
+                    if (item == "5")
+                        return new Cord
+                        {
+                            X = j,
+                            Y = i
+                        };
+                }
+            }
+            throw new Exception("Did not find start cord");
         }
 
         public void Move(char s)
@@ -64,32 +102,116 @@ namespace Day2
                 default:
                     throw new Exception("Invalid char");
             }
-
         }
 
         private void MoveUp()
         {
-            if (CurrentKey <= 3) return;
-            CurrentKey -= 3;
+            double count = _layOut.Count;
+            var layoutHeight = _layOut[CurrentCord.Y-1].Count;
+            var xCordIsOnFirstOrLastIndex = CurrentCord.X == 0 || CurrentCord.X == layoutHeight - 1;
+            var isOnTopHalf = CurrentCord.Y <= Math.Round(count / 2, 0, MidpointRounding.AwayFromZero);
+
+            if (xCordIsOnFirstOrLastIndex && isOnTopHalf)
+            {
+                return;
+            }
+            CurrentCord.Y++;
         }
 
         private void MoveDown()
         {
-            if (CurrentKey >= 7) return;
-            CurrentKey += 3;
+            double count = _layOut.Count;
+            var layoutHeight = _layOut[CurrentCord.Y-1].Count;
+            var xCordIsOnFirstOrLastIndex = CurrentCord.X == 0 || CurrentCord.X == layoutHeight - 1;
+            var isOnBottomHalf = CurrentCord.Y >= Math.Round(count / 2, 0, MidpointRounding.AwayFromZero);
+
+            if (xCordIsOnFirstOrLastIndex && isOnBottomHalf)
+            {
+                return;
+            }
+            CurrentCord.Y--;
         }
 
         private void MoveLeft()
         {
-            if (CurrentKey % 3 == 1) return;
-            CurrentKey--;
+            if (CurrentCord.X == 0)
+            {
+                return;
+            }
+            CurrentCord.X--;
         }
 
         private void MoveRight()
         {
-            if (CurrentKey % 3 == 0) return;
-            CurrentKey++;
+            var rowCount = _layOut[CurrentCord.Y-1].Count - 1;
+            if (CurrentCord.X == rowCount)
+            {
+                return;
+            }
+            CurrentCord.X++;
+        }
+    }
+
+
+    public class Cord
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public class KeyPadLayout
+    {
+        private const string AdvancedLayout = @"
+                                1
+                              2 3 4
+                            5 6 7 8 9
+                              A B C
+                                D
+";
+        private const string SimpleLayout = @"
+                                1 2 3
+                                4 5 6
+                                7 8 9
+";
+
+        public static List<List<string>> GetAdvancedLayout()
+        {
+            var list = new List<List<string>>();
+            var layoutLines = AdvancedLayout.Split('\n');
+
+            for (var index = 1; index < layoutLines.Length; index++)
+            {
+                list.Add(new List<string>());
+                var line = layoutLines[index - 1];
+                foreach (var c in line.Trim().ToCharArray())
+                {
+                    if (c == ' ') continue;
+                    list[index - 1].Add(c.ToString());
+                }
+            }
+
+            list.RemoveAt(0);
+            return list;
         }
 
+        public static List<List<string>> GetSimpleLayout()
+        {
+            var list = new List<List<string>>();
+            var layoutLines = SimpleLayout.Split('\n');
+
+            for (var index = 1; index < layoutLines.Length; index++)
+            {
+                list.Add(new List<string>());
+                var line = layoutLines[index - 1];
+                foreach (var c in line.Trim().ToCharArray())
+                {
+                    if (c == ' ') continue;
+                    list[index - 1].Add(c.ToString());
+                }
+            }
+
+            list.RemoveAt(0);
+            return list;
+        }
     }
 }
