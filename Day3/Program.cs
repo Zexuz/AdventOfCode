@@ -18,6 +18,9 @@ namespace Day3
             var regEx = new Regex(@"^(\d+)[ ]*(\d+)[ ]*(\d+)$");
 
             var i = 0;
+            var row1 = new List<string>();
+            var row2 = new List<string>();
+            var row3 = new List<string>();
             foreach (var line in lines)
             {
                 var match = regEx.Match(line.Trim());
@@ -26,8 +29,35 @@ namespace Day3
                 var sideC = match.Groups[3].Value;
                 var triangle = new Triangle(sideA, sideB, sideC);
                 if (triangle.IsValid()) i++;
+
+                row1.Add(sideA);
+                row2.Add(sideB);
+                row3.Add(sideC);
             }
-            Console.WriteLine(i);
+            Console.WriteLine($"Part one anwser {i}");
+
+            var verticalTri = 0;
+            ItarOverList(row1, ref verticalTri, regEx);
+            ItarOverList(row2, ref verticalTri, regEx);
+            ItarOverList(row3, ref verticalTri, regEx);
+            Console.WriteLine($"Part one anwser {verticalTri}");
+
+
+        }
+
+        public static void ItarOverList(List<string> list,ref int counter,Regex regex )
+        {
+            for (var j = 0; j < list.Count; j+=3)
+            {
+                var line = $"{list[j]} {list[j+1]} {list[j+2]}";
+
+                var match = regex.Match(line.Trim());
+                var sideA = match.Groups[1].Value;
+                var sideB = match.Groups[2].Value;
+                var sideC = match.Groups[3].Value;
+                var triangle = new Triangle(sideA, sideB, sideC);
+                if (triangle.IsValid()) counter++;
+            }
         }
     }
 
