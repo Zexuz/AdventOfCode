@@ -21,6 +21,14 @@ namespace Day4
                 .Sum(room => room.SectorId);
 
             Console.WriteLine(sumOfSectorIds);
+
+            foreach (var line in lines)
+            {
+                var room = new Room(line, regEx);
+                room.GetRealRoomName();
+                if(room.Name.Contains("northpole object")) Console.WriteLine(room.SectorId);
+            }
+
         }
 
         public static void Main(string[] args)
@@ -31,7 +39,7 @@ namespace Day4
 
     internal class Room
     {
-        public string Name { get; }
+        public string Name { get; private set; }
         public int SectorId { get; }
         public string CheckSum { get; }
 
@@ -39,7 +47,7 @@ namespace Day4
         {
             var match = regex.Match(rawRoomString);
 
-            Name = match.Groups[1].Value.Replace("-", "");
+            Name = match.Groups[1].Value.Replace("-", " ");
             SectorId = int.Parse(match.Groups[2].Value);
             CheckSum = match.Groups[3].Value;
         }
@@ -51,13 +59,41 @@ namespace Day4
                 .OrderByDescending(c => c.ToList().Count)
                 .ThenBy(c => c.Key)
                 .ToList();
+
+            for (int i = 0; i < strGroupedByChars.Count; i++)
+            {
+                if (strGroupedByChars[i].Key == ' ')
+                    strGroupedByChars.RemoveAt(i);
+            }
+
             for (var i = 0; i < CheckSum.Length; i++)
             {
-                if(CheckSum[i] == strGroupedByChars[i].Key) continue;
+                if (CheckSum[i] == strGroupedByChars[i].Key) continue;
                 return false;
             }
 
             return true;
+        }
+
+        public void GetRealRoomName()
+        {
+            var newName = "";
+            var left = SectorId % 26;
+            foreach (var cha in Name)
+            {
+                if (cha == ' ')
+                {
+                    newName += " ";
+                    continue;
+                }
+
+
+                var c = cha + left;
+                if (c > 122)
+                    c -= 26;
+                newName = newName + (char) c;
+            }
+            Name = newName;
         }
     }
 }
