@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,8 +9,7 @@ namespace Day5
 {
     internal class Program
     {
-
-        private void Star()
+        private static void StartPart1()
         {
             var input = "ugkcyxxp";
 
@@ -20,14 +20,50 @@ namespace Day5
             {
                 var md5 = CreateMD5($"{input}{++i}");
                 var match = regEx.Match(md5);
-                if(!match.Success)continue;
+                if (!match.Success) continue;
                 Console.WriteLine($"Found a match on hash : {md5}, at index :{i}, key: {match.Groups[1].Value}");
                 keys.Add(match.Groups[1].Value);
-                if(keys.Count == 8) break;
+                if (keys.Count == 8) break;
             }
 
             var keyCode = string.Join("", keys);
             Console.WriteLine(keyCode);
+            Console.ReadKey();
+        }
+
+        private static void StartPart2()
+        {
+            var input = "ugkcyxxp";
+
+            var regEx = new Regex(@"^00000([0-7])(.)");
+            var i = -1;
+            var keys = new Dictionary<int, string>();
+            while (true)
+            {
+                var md5 = CreateMD5($"{input}{++i}");
+                var match = regEx.Match(md5);
+                if (!match.Success) continue;
+                try
+                {
+                    keys.Add(Convert.ToInt32(match.Groups[1].Value), match.Groups[2].Value);
+                    Console.WriteLine($"Found a match on hash : {md5}" +
+                                      $", at index :{i}" +
+                                      $", keyCodePosition: {match.Groups[1].Value}" +
+                                      $", key :{match.Groups[2].Value}");
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+                if (keys.Count == 8) break;
+            }
+
+            var list = keys.Select(kvp => kvp.Key).ToList();
+            list.Sort();
+            foreach (var key in list)
+            {
+                Console.Write(keys[key]);
+            }
             Console.ReadKey();
         }
 
@@ -38,7 +74,7 @@ namespace Day5
             // Use input string to calculate MD5 hash
             using (var md5 = MD5.Create())
             {
-                var inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+                var inputBytes = Encoding.ASCII.GetBytes(input);
                 var hashBytes = md5.ComputeHash(inputBytes);
 
                 // Convert the byte array to hexadecimal string
@@ -53,8 +89,8 @@ namespace Day5
 
         public static void Main(string[] args)
         {
-            new Program().Star();
+            StartPart1();
+            StartPart2();
         }
-
     }
 }
