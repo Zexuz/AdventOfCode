@@ -27,8 +27,14 @@ namespace Day6
                 }
             }
 
+            Console.Write("Part 1:  ");
             for (int i = 0; i < 8; i++)
                 Console.Write(dict[i].GroupBy(x => x).OrderByDescending(x => x.Count()).First().Key);
+
+            Console.Write("\nPart 2:  ");
+            for (int i = 0; i < 8; i++)
+                Console.Write(dict[i].GroupBy(x => x).OrderBy(x => x.Count()).First().Key);
+
         }
 
         public static void Main(string[] args)
