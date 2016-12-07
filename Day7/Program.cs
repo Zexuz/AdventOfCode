@@ -13,8 +13,8 @@ namespace ConsoleApplication
             var inputFile = File.ReadAllText("../../input data");
             var rows = inputFile.Split('\n');
 
-            Console.WriteLine($"It has {rows.Count(row => new IpV7(row.Trim()).SupportsTSL())} IPs that support TLS");
-            Console.WriteLine($"It has {rows.Count(row => new IpV7(row.Trim()).SupportsSSL())} IPs that support TLS");
+            Console.WriteLine($"It has {rows.Count(row => new IpV7(row.Trim(), 4).SupportsTSL())} IPs that support TLS");
+            Console.WriteLine($"It has {rows.Count(row => new IpV7(row.Trim(), 3).SupportsSSL())} IPs that support SSL");
         }
 
         public static void Main(string[] args)
@@ -28,17 +28,19 @@ namespace ConsoleApplication
         private readonly List<string> _listOfProtectedAbbas;
         private readonly List<string> _listOfPossibleAbbas;
 
-        public IpV7(string ipv7)
+        public IpV7(string ipv7, int abbaLenght)
         {
             var protectedStringRegex = new Regex(@"(?<=\[).*?(?=\])");
             var abbaStringsRegex = new Regex(@"([a-z]*)(?![^[].*[^]]*)");
 
-            _listOfProtectedAbbas = MakeAllPossibleAbbas(protectedStringRegex, ipv7);
-            _listOfPossibleAbbas = MakeAllPossibleAbbas(abbaStringsRegex, ipv7);
+            _listOfProtectedAbbas = MakeAllPossibleAbbas(protectedStringRegex, ipv7, abbaLenght);
+            _listOfPossibleAbbas = MakeAllPossibleAbbas(abbaStringsRegex, ipv7, abbaLenght);
         }
 
         public bool SupportsTSL()
         {
+            //if there is a [ABBA] inside [] and if index1 is not same as index 2,
+            // the abba is a valid abba but we can't have a ABBA inside the [].
             if (_listOfProtectedAbbas.Any(pas => pas == Reverse(pas) && pas[0] != pas[1]))
             {
                 return false;
@@ -49,22 +51,30 @@ namespace ConsoleApplication
 
         public bool SupportsSSL()
         {
-            throw new NotImplementedException();
+            var abbas = _listOfPossibleAbbas.Where(pas =>
+                pas == Reverse(pas)
+                && _listOfProtectedAbbas.Contains(SwapPas(pas))).ToList();
+            return abbas.Count > 0;
         }
 
-        private List<string> MakeAllPossibleAbbas(Regex protectedStringRegex, string ipv7)
+        private List<string> MakeAllPossibleAbbas(Regex protectedStringRegex, string ipv7, int abbaLenght)
         {
             var list = new List<string>();
             foreach (Match match in protectedStringRegex.Matches(ipv7))
             {
                 var stringInsideSquareBrackets = match.Value;
-                for (var i = 0; i < stringInsideSquareBrackets.Length - 3; i++)
+                for (var i = 0; i < stringInsideSquareBrackets.Length - (abbaLenght - 1); i++)
                 {
-                    list.Add(stringInsideSquareBrackets.Substring(i, 4));
+                    list.Add(stringInsideSquareBrackets.Substring(i, abbaLenght));
                 }
             }
 
             return list;
+        }
+
+        private static string SwapPas(string s)
+        {
+            return new string(new[] {s[1], s[0], s[1]});
         }
 
         private static string Reverse(string s)
@@ -73,7 +83,5 @@ namespace ConsoleApplication
             Array.Reverse(charArray);
             return new string(charArray);
         }
-
-
     }
 }
