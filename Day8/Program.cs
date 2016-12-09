@@ -14,7 +14,7 @@ namespace Day8
             var inputFile = File.ReadAllText("../../input");
             var rows = inputFile.Split('\n');
 
-            var regex = new Regex(@"(rect|row|column).*(\d+).*?(\d+)");
+            var regex = new Regex(@"(rect|row|column).*?(\d+).*?(\d+)");
 
             foreach (var row in rows)
             {
